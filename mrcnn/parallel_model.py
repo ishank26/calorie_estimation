@@ -27,13 +27,14 @@ class ParallelModel(KM.Model):
     outputs.
     """
 
-    def __init__(self, keras_model, gpu_count):
+    def __init__(self, keras_model, gpu_count, gpu_list=None):
         """Class constructor.
         keras_model: The Keras model to parallelize
         gpu_count: Number of GPUs. Must be > 1
         """
         self.inner_model = keras_model
         self.gpu_count = gpu_count
+        self.gpu_list = gpu_list
         merged_outputs = self.make_parallel()
         super(ParallelModel, self).__init__(inputs=self.inner_model.inputs,
                                             outputs=merged_outputs)
@@ -67,23 +68,43 @@ class ParallelModel(KM.Model):
             outputs_all.append([])
 
         # Run the model call() on each GPU to place the ops there
-        for i in range(self.gpu_count):
-            with tf.device('/gpu:%d' % i):
-                with tf.name_scope('tower_%d' % i):
-                    # Run a slice of inputs through this replica
-                    zipped_inputs = zip(self.inner_model.input_names,
-                                        self.inner_model.inputs)
-                    inputs = [
-                        KL.Lambda(lambda s: input_slices[name][i],
-                                  output_shape=lambda s: (None,) + s[1:])(tensor)
-                        for name, tensor in zipped_inputs]
-                    # Create the model replica and get the outputs
-                    outputs = self.inner_model(inputs)
-                    if not isinstance(outputs, list):
-                        outputs = [outputs]
-                    # Save the outputs for merging back together later
-                    for l, o in enumerate(outputs):
-                        outputs_all[l].append(o)
+        if self.gpu_list is not None and self.gpu_count > 0:
+            for i in range(len(self.gpu_list)):
+                with tf.device('/device:GPU:%d' % self.gpu_list[i]):
+                    print("dfdfdfd\n\n\n")
+                    with tf.name_scope('tower_%d' % self.gpu_list[i]):
+                        # Run a slice of inputs through this replica
+                        zipped_inputs = zip(self.inner_model.input_names,
+                                            self.inner_model.inputs)
+                        inputs = [
+                            KL.Lambda(lambda s: input_slices[name][i],
+                                    output_shape=lambda s: (None,) + s[1:])(tensor)
+                            for name, tensor in zipped_inputs]
+                        # Create the model replica and get the outputs
+                        outputs = self.inner_model(inputs)
+                        if not isinstance(outputs, list):
+                            outputs = [outputs]
+                        # Save the outputs for merging back together later
+                        for l, o in enumerate(outputs):
+                            outputs_all[l].append(o)
+        else: 
+            for i in range(self.gpu_count):
+                with tf.device('/device:GPU:%d' % i):
+                    with tf.name_scope('tower_%d' % i):
+                        # Run a slice of inputs through this replica
+                        zipped_inputs = zip(self.inner_model.input_names,
+                                            self.inner_model.inputs)
+                        inputs = [
+                            KL.Lambda(lambda s: input_slices[name][i],
+                                    output_shape=lambda s: (None,) + s[1:])(tensor)
+                            for name, tensor in zipped_inputs]
+                        # Create the model replica and get the outputs
+                        outputs = self.inner_model(inputs)
+                        if not isinstance(outputs, list):
+                            outputs = [outputs]
+                        # Save the outputs for merging back together later
+                        for l, o in enumerate(outputs):
+                            outputs_all[l].append(o)
 
         # Merge outputs on CPU
         with tf.device('/cpu:0'):

@@ -9,6 +9,7 @@ import cv2
 import matplotlib
 import matplotlib.pyplot as plt
 from IPython.display import display
+import tensorflow as tf
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../")
@@ -29,6 +30,8 @@ from food256 import Food256dataset
 
 import foodutils as fu
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 # Directory to save logs and trained model
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
 
@@ -44,7 +47,7 @@ config = Food256config()
 config.display()
 
 # Load Data
-filename = 'data_coco.pkl'  # pkl dump in dataset root
+filename = 'data_food256.pkl'  # pkl dump in dataset root
 train_ids, val_ids = fu.getSplit(filename, data_dir='data/UECFOOD256')
 
 
@@ -57,12 +60,15 @@ val_data = Food256dataset()
 val_data.load_food256(filename, val_ids)
 val_data.prepare()
 
+
 # Create model in training mode
-model = modellib.MaskRCNN(mode="training", config=config,
-                          model_dir=MODEL_DIR)
+with tf.device('/cpu:0'):
+    model = modellib.MaskRCNN(mode="training", config=config,
+                            model_dir=MODEL_DIR)
 
 # Which weights to start with?
 init_with = "coco"  # imagenet, coco, or last
+
 
 if init_with == "imagenet":
     model.load_weights(model.get_imagenet_weights(), by_name=True)
@@ -82,10 +88,14 @@ elif init_with == "last":
 # Passing layers="heads" freezes all layers except the head
 # layers. You can also pass a regular expression to select
 # which layers to train by name pattern.
-model.train(train_data, val_data,
-            learning_rate=config.LEARNING_RATE,
-            epochs=2,
-            layers='heads')
+
+
+if len (config.GPU_LIST) > 0:
+    with tf.device('/gpu:{}'.format(config.GPU_LIST[0])):
+        model.train(train_data, val_data,
+                    learning_rate=config.LEARNING_RATE,
+                    epochs=config.NUM_EPOCHS,
+                    layers='heads')
 
 # Save weights
 # Typically not needed because callbacks save after every epoch

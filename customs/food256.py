@@ -32,16 +32,19 @@ class Food256config(Config):
     # GPU because the images are small. Batch size is 8 (GPUs * images/GPU).
     GPU_COUNT = 1
     IMAGES_PER_GPU = 4  # batch size
+    GPU_LIST = [1]
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 256  # background + 256 food labels
 
     RPN_ANCHOR_SCALES = (8, 16, 32, 64, 128)  # anchor side in pixels
+
     # Reduce training ROIs per image because the images are small and have
     # few objects. Aim to allow ROI sampling to pick 33% positive ROIs.
     TRAIN_ROIS_PER_IMAGE = 120
-    MEAN_PIXEL = np.array([0., 0., 0.])
 
+    # Image mean (RGB)
+    MEAN_PIXEL = np.array([123.7, 116.8, 103.9])
     # Number of training steps per epoch
     # This doesn't need to match the size of the training set. Tensorboard
     # updates are saved at the end of each epoch, so setting this to a
@@ -50,12 +53,16 @@ class Food256config(Config):
     # might take a while, so don't set this too small to avoid spending
     # a lot of time on validation stats.
     STEPS_PER_EPOCH = 10
+
     DETECTION_MAX_INSTANCES = 100
     USE_MINI_MASK = True
 
     IMAGE_RESIZE_MODE = "square"
     IMAGE_MIN_DIM = 256
     IMAGE_MIN_SCALE = 0.0
+
+    NUM_EPOCHS = 2
+
 
 
 
