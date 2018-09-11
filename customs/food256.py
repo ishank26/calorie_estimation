@@ -52,7 +52,7 @@ class Food256config(Config):
     # Validation stats are also calculated at each epoch end and they
     # might take a while, so don't set this too small to avoid spending
     # a lot of time on validation stats.
-    STEPS_PER_EPOCH = 10
+    STEPS_PER_EPOCH = 50
 
     DETECTION_MAX_INSTANCES = 100
     USE_MINI_MASK = True
@@ -61,7 +61,7 @@ class Food256config(Config):
     IMAGE_MIN_DIM = 256
     IMAGE_MIN_SCALE = 0.0
 
-    NUM_EPOCHS = 2
+    NUM_EPOCHS = 100
 
 
 
