@@ -51,8 +51,8 @@ args = parser.parse_args()
 
 print("Mode: ", args.mode)
 print("Weight file: ", args.weights)
-print("Traing Stage: ", args.stage)
-print("Traing Stage: ", args.logs)
+print("Training Stage: ", args.stage)
+print("Log dir: ", args.logs)
 
 
 '''#parser.add_argument('--weights', required=True,
@@ -160,7 +160,7 @@ model.load_weights(weight_path, by_name=True,
 
 
 # Training schedule
-if args.mode == "train" and len(config.GPU_LIST) == 1:
+if args.mode == "train" and len(config.GPU_LIST) > 0 :
     assert args.stage
     with tf.device('/gpu:{}'.format(config.GPU_LIST[0])):
             # stage 1
