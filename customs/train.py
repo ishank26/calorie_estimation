@@ -163,19 +163,22 @@ model.load_weights(weight_path, by_name=True,
 if args.mode == "train" and len(config.GPU_LIST) == 1:
     assert args.stage
     with tf.device('/gpu:{}'.format(config.GPU_LIST[0])):
-            if args.stage == 1:
+            # stage 1
+            if args.stage == "heads":
                 print("Training network heads")
                 model.train(train_data, val_data,
                             learning_rate=config.LEARNING_RATE,
                             epochs=config.NUM_EPOCHS,
                             layers='heads')
-            if args.stage == 2:
+            # stage = 2
+            if args.stage == "4+":
                 print("Fine tune Resnet stage 4 and up")
                 model.train(train_data, val_data,
                             learning_rate=config.LEARNING_RATE,
                             epochs=config.NUM_EPOCHS,
                             layers='4+')
-            if args.stage == 3:
+            # satge 3
+            if args.stage == "all":
                 print("Fine tune all layers")
                 model.train(train_data, val_data,
                             learning_rate=config.LEARNING_RATE,
