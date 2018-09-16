@@ -7,6 +7,7 @@ Licensed under the MIT License (see LICENSE for details)
 Written by Waleed Abdulla
 """
 
+from __future__ import division
 import os
 import random
 import datetime
@@ -23,7 +24,6 @@ import keras.backend as K
 import keras.layers as KL
 import keras.engine as KE
 import keras.models as KM
-
 from mrcnn import utils
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
@@ -2243,7 +2243,9 @@ class MaskRCNN():
                 log("{}{:20}   ({})".format(" " * indent, layer.name,
                                             layer.__class__.__name__))
     def fullmatch(self, regex, string, flags=0):
-        return re.match("(?:" + regex + r")\Z", string, flags=flags)
+        m = re.match(regex, string, flags=flags)
+        if m and m.span()[1] == len(string):
+            return m
 
     def set_log_dir(self, model_path=None):
         """Sets the model log directory and epoch counter.

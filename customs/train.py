@@ -13,6 +13,7 @@ import tensorflow as tf
 import argparse
 import skimage
 from tqdm import tqdm
+import datetime
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../")
 
@@ -33,14 +34,15 @@ import foodutils as fu
 # Directory to save logs and trained model
 MODEL_DIR = 'logs'
 DATA_DIR ='data/UECFOOD256'
-DEFAULT_LOGS_DIR = os.path.join(MODEL_DIR,'food25620180910T1118')
+now = datetime.datetime.now()
+DEFAULT_LOGS_DIR = os.path.join(MODEL_DIR,'food256_T{}'.format(now.date))
 
 parser = argparse.ArgumentParser(
         description='Food segmentation')
 parser.add_argument("mode",
                     metavar="<mode>",
                     help="'train' or 'evaluate'")
-parser.add_argument("weights",
+parser.add_argument("--weights",
                     metavar="</path/to/weights>",
                     help="coco or imagenet or last or /path/to/weights")
 parser.add_argument("--stage",
@@ -54,18 +56,6 @@ print("Weight file: ", args.weights)
 print("Training Stage: ", args.stage)
 print("Log dir: ", args.logs)
 
-
-'''#parser.add_argument('--weights', required=True,
-#                    metavar="/path/to/weights.h5",
-#                    help="Path to weights .h5 file or 'coco'")
-parser.add_argument('--logs', required=False,
-                    default=DEFAULT_LOGS_DIR,
-                    metavar="/path/to/logs/",
-                    help='Logs and checkpoints directory (default=logs/)')
-parser.add_argument('--subset', required=False,
-                    metavar="Dataset sub-directory",
-                    help="Subset of dataset to run prediction on")'''
-args = parser.parse_args()
 
 
 def evaluate(model, class_names, filelist, data_dir = None):
@@ -86,6 +76,7 @@ def evaluate(model, class_names, filelist, data_dir = None):
             height, width = image.shape[:2]
 
             r = model.detect([image], verbose = 1)[0]
+            print(r)
 
             visualize.display_instances(
                 image, r['rois'], r['masks'], r['class_ids'],
@@ -93,7 +84,7 @@ def evaluate(model, class_names, filelist, data_dir = None):
                 title="Predictions")
             plt.savefig("{}/{}".format(result_dir, imgName))
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3,4,5,6"
 
 # Local path to trained weights file for coco
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -140,12 +131,11 @@ else:
         model = modellib.MaskRCNN(mode="inference", config=config,
                                 model_dir=args.logs)
 
-
 # Select weights file to load
 if args.weights.lower() == "coco":
     # Start from COCO trained weigths
     weight_path = COCO_MODEL_PATH
-elif args.weigths.lower() == "last":
+elif args.weights.lower() == "last":
     # Find last trained weights
     weight_path = model.find_last()
 elif args.weights.lower() == "imagenet":
@@ -154,11 +144,10 @@ elif args.weights.lower() == "imagenet":
 else:
     weight_path = args.weights
 
-model.load_weights(weight_path, by_name=True,
-                   exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
-                            "mrcnn_bbox", "mrcnn_mask"])
-
-
+#model.load_weights(weight_path, by_name=True,
+#                   exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
+#                            "mrcnn_bbox", "mrcnn_mask"])
+model.load_weights(weight_path, by_name=True)
 # Training schedule
 if args.mode == "train" and len(config.GPU_LIST) > 0 :
     assert args.stage

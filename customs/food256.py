@@ -32,7 +32,7 @@ class Food256config(Config):
     # GPU because the images are small. Batch size is 8 (GPUs * images/GPU).
     GPU_COUNT = 1
     IMAGES_PER_GPU = 4  # batch size
-    GPU_LIST = [1]
+    GPU_LIST = [6]
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 256  # background + 256 food labels
@@ -61,7 +61,7 @@ class Food256config(Config):
     IMAGE_MIN_DIM = 256
     IMAGE_MIN_SCALE = 0.0
 
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 20
 
 
 
@@ -130,11 +130,11 @@ class Food256dataset(utils.Dataset, utilClass):
                         for j in range(len(arr['y'])):
                             y = arr['y'][j] 
                             if y >= height:
-                                y-=1
+                                y-=2
                                 bbinfo[i]['y'][j] = y
                             x = arr['x'][j]
                             if x >= width:
-                                x-=1
+                                x-=2
                                 bbinfo[i]['x'][j] = x
 
 

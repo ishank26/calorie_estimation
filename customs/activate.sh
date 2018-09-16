@@ -1,4 +1,2 @@
 #!/usr/bin/env bash
-source ~/.bashrc 
-source activate foodproj
-
+source $HOME/.bashrc && source activate foodproj
