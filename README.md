@@ -1,7 +1,7 @@
 # TODO:
 - Train 3 stages sequentially for better results
-- Fix prepareCocoFormat for any dataset
 - affinity clustering on mask or activation maps ??
+- Update for W-Net architecture.
 
 
 # Results
